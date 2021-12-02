@@ -1,42 +1,41 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "monty.h"
 
 /**
- * opcode - function in charge of running builtins
- * @stack: stack given by main
- * @str: string to compare
- * @line_cnt: ammount of lines
+ * opcode - interpreter operations
+ * @command: content line
  *
- * Return: nothing
+ * Return: void
  */
-void opcode(stack_t **stack, char *str, unsigned int line_cnt)
+void opcode(char *command)
 {
-	int i = 0;
+	unsigned int i = 0;
+	instruction_t opcode_func[] = {
+	    {"push", op_push},
+	    {"pall", op_pall},
+	    {"pint", op_pint},
+	    {"swap", op_swap},
+	    {"pop", op_pop},
+	    {"add", op_add},
+	    {"nop", op_nop},
+	    {"sub", op_sub},
+	    {"div", op_div},
+	    {"mul", op_mul},
+	    {"mod", op_mod},
+	    {NULL, NULL},
+	};
 
-	instruction_t op[] = INSTRUCTIONS;
-
-	if (!strcmp(str, "stack"))
+	while ((opcode_func[i].opcode != NULL))
 	{
-		global.data_struct = 1;
-		return;
-	}
-	if (!strcmp(str, "queue"))
-	{
-		global.data_struct = 0;
-		return;
-	}
-
-	while (op[i].opcode)
-	{
-		if (strcmp(op[i].opcode, str) == 0)
+		if (strcmp(opcode_func[i].opcode, command) == 0)
 		{
-			op[i].f(stack, line_cnt);
-			return; /* if we found a match, run the function */
+			opcode_func[i].f(&slayer.stack_head, slayer.n_lines);
+			return;
 		}
 		i++;
 	}
-	fprintf(stderr, "L%d: unknown instruction %s\n", line_cnt, str);
-	status = EXIT_FAILURE;
+	fprintf(stderr, "L%u: unknown instruction %s\n", slayer.n_lines, command);
+	free(slayer.getl_info);
+	slayer_list(slayer.stack_head);
+	fclose(slayer.fp_struct);
+	exit(EXIT_FAILURE);
 }
