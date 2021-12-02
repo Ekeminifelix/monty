@@ -1,78 +1,40 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include "monty.h"
-
+hero_t slayer;
 /**
- * error_usage - prints usage message and exits
+ *  main -  interpreter for Monty ByteCodes files
+ *  @argc: Number of paramethers
+ *  @argv: Pointer to all the paramethers
  *
- * Return: nothing
- */
-void error_usage(void)
-{
-	fprintf(stderr, "USAGE: monty file\n");
-	exit(EXIT_FAILURE);
-}
-
-/**
- * file_error - prints file error message and exits
- * @argv: argv given by manin
- *
- * Return: nothing
- */
-void file_error(char *argv)
-{
-	fprintf(stderr, "Error: Can't open file %s\n", argv);
-	exit(EXIT_FAILURE);
-}
-
-int status = 0;
-/**
- * main - entry point
- * @argv: list of arguments passed to our program
- * @argc: ammount of args
- *
- * Return: nothing
+ *  Return: Always 0
  */
 int main(int argc, char **argv)
 {
-	FILE *file;
-	size_t buf_len = 0;
-	char *buffer = NULL;
-	char *str = NULL;
-	stack_t *stack = NULL;
-	unsigned int line_cnt = 1;
+	ssize_t line_size;
+	size_t line_buf_size = 0;
 
-	global.data_struct = 1;
+	slayer.stack_head = NULL;
+	slayer.n_lines = 0;
 	if (argc != 2)
-		error_usage();
-
-	file = fopen(argv[1], "r");
-
-	if (!file)
-		file_error(argv[1]);
-
-	while (getline(&buffer, &buf_len, file) != -1)
 	{
-		if (status)
-			break;
-		if (*buffer == '\n')
-		{
-			line_cnt++;
-			continue;
-		}
-		str = strtok(buffer, " \t\n");
-		if (!str || *str == '#')
-		{
-			line_cnt++;
-			continue;
-		}
-		global.argument = strtok(NULL, " \t\n");
-		opcode(&stack, str, line_cnt);
-		line_cnt++;
+		fprintf(stderr, "USAGE: monty file\n");
+		exit(EXIT_FAILURE);
 	}
-	free(buffer);
-	free_stack(stack);
-	fclose(file);
-	exit(status);
+	slayer.fp_struct = fopen(argv[1], "r");
+	if (!slayer.fp_struct)
+	{
+		fprintf(stderr, "Error: Can't open file %s\n", argv[1]);
+		exit(EXIT_FAILURE);
+	}
+	while ((line_size = getline(&slayer.getl_info,
+				    &line_buf_size, slayer.fp_struct)) != EOF)
+	{
+		slayer.n_lines++;
+		delim_checker(slayer.getl_info);
+		split_str(slayer.getl_info);
+		opcode(slayer.getl_info);
+	}
+	free(slayer.getl_info);
+	slayer_list(slayer.stack_head);
+	fclose(slayer.fp_struct);
+	return (EXIT_SUCCESS);
 }
